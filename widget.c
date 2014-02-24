@@ -204,17 +204,12 @@ void update_widget (WIDGET* widget) {
 
 		/* ------------- </DATA UPDATE> -------------- */
 
-		/* ------------- <SET FLAG MEMBERS> ------------ 
+		/* ------------- <SET FLAG MEMBERS> ------------ */
 		
-		if (widget -> selected_index == widget -> wndTable -> len - 1 ||
-			widget -> selected_index == 0) 	widget -> wndFlag = false;
-		else widget -> wndFlag = true;
+		widget -> wndFlag = true;
+		widget -> dataFlag = true;
 
-		if (widget -> firstrow_index == 0 ||
-			widget -> lastrow_index == widget -> dataTable -> len - 1) 	widget -> dataFlag = false;
-		else widget -> dataFlag = true;
-
-		 ------------- </SET FLAG MEMBERS> ------------ */
+		/* ------------- </SET FLAG MEMBERS> ------------ */
 		
 }			
 
@@ -398,11 +393,11 @@ int main(int argc, const char *argv[])
 	int length = sizeof (mydata) / sizeof (MYDATA);
 	
 	int i; 
-	for (i = 0; i <length; i++) {
+	for (i = 0; i < length; i++) {
 		g_ptr_array_add (datatable, &mydata [i]);
 	}
 
-	WIDGET* widget = new_widget (widget, 5, 1, 1, 20, datatable, printHeader, printData);
+	WIDGET* widget = new_widget (widget, 10, 1, 1, 20, datatable, printHeader, printData);
 /*	refresh (); */
 
 	clear_widget (widget);
@@ -432,7 +427,7 @@ int main(int argc, const char *argv[])
 			default :
 				break;
 		}
-		usleep (100);		
+		usleep (1000);		
 	} 
 	
 	g_ptr_array_free (datatable, TRUE);
