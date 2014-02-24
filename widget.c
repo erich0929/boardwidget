@@ -26,6 +26,9 @@ typedef struct _WIDGET {
 		chtype base_color;
 		chtype selected_color;
 		guint selected_index;
+
+		bool wndFlag;
+		bool dataFlag;	
 } WIDGET;
 
 typedef struct _dataContainer {
@@ -53,7 +56,10 @@ WIDGET* new_widget (WIDGET* widget, int row, int col,
 		widget -> dataTable = dataTable;
 		widget -> printHeader = printHeader;
 		widget -> printData = printData;
-		
+	
+		widget -> wndFlag = true;
+		widget -> dataFlag = true;
+
 		/* Create new main window */
 		widget -> mainWnd = newwin (widget -> row * widget -> row_width + 3,
 					   	widget -> col * widget -> col_width + 2, 1, 1);
@@ -130,26 +136,35 @@ void set_rowIndex (WIDGET* widget, int index) {
 /* clear_widget must be called before new setting widget !! */
 void clear_widget (WIDGET* widget) {
 
-		/* ------------- <CLEAR VIEW AND DATA> ---------------- */
-		
 		WINDOW** rowContainer;
-	
 		int i, j;
-		for (i = 0; i < widget -> row; i++) {
-			rowContainer = (WINDOW**) g_ptr_array_index (widget -> wndTable, i);
-			for (j = 0; j < widget -> col; j++) {
-					/* wbkgd (rowContainer [j], widget -> base_color); */
-					if (i == widget -> selected_index)
-							wbkgd (rowContainer [j], widget -> base_color);
-					wdeleteln (rowContainer [j]); /* clear data */
-					wmove (rowContainer [j], 0 , 0);
-					wrefresh (rowContainer [j]); 
-			}
+		/* ------------- <CLEAR VIEW> ------------- */
+		if (widget -> wndFlag == true) {
+				rowContainer = (WINDOW**) g_ptr_array_index (widget -> wndTable , widget -> selected_index);
+				for (j = 0; j < widget -> col; j++) {
+						wbkgd (rowContainer [j], widget -> base_color);
+						wrefresh (rowContainer [j]);
+				}
 		}
-		wbkgd (widget -> mainWnd, widget -> base_color);
-		wrefresh (widget -> mainWnd);
 
-		/* ------------- </CLEAR VIEW AND DATA> ---------------- */
+
+		/* ------------- </CLEAR VIEW> ------------- */
+
+
+		/* ------------- <CLEAR DATA> ---------------- */
+		if (widget -> dataFlag == true) {
+				for (i = 0; i < widget -> row; i++) {
+						rowContainer = (WINDOW**) g_ptr_array_index (widget -> wndTable, i);
+						for (j = 0; j < widget -> col; j++) {
+								wdeleteln (rowContainer [j]); /* clear data */
+								wmove (rowContainer [j], 0 , 0);
+								wrefresh (rowContainer [j]); 
+						}
+				}
+		}
+
+
+		/* ------------- </CLEAR DATA> ---------------- */
 }
 void update_widget (WIDGET* widget) {
 	
@@ -157,37 +172,66 @@ void update_widget (WIDGET* widget) {
 		WINDOW** rowContainer;	
 
 		/* ------------- <VIEW UPDATE> --------------- */
-		rowContainer = (WINDOW**) g_ptr_array_index (widget -> wndTable, widget -> selected_index);
-	
-		for (j = 0; j < widget -> col; j++) {
-				wbkgd (rowContainer [j], widget -> selected_color);
-				wrefresh (rowContainer [j]);
+
+		if (widget -> wndFlag == true) {
+				rowContainer = (WINDOW**) g_ptr_array_index (widget -> wndTable, widget -> selected_index);
+
+				for (j = 0; j < widget -> col; j++) {
+						wbkgd (rowContainer [j], widget -> selected_color);
+						wrefresh (rowContainer [j]);
+				}
+				wrefresh (widget -> mainWnd);
 		}
-		wrefresh (widget -> mainWnd);
 
 		/* ------------- </VIEW UPDATE> -------------- */
 
 		/* ------------- <DATA UPDATE> -------------- */
-		gpointer recordset;
-		int firstrow_index = (int) widget -> firstrow_index;
-		int lastrow_index = (int) widget -> lastrow_index;
 
-		for (i = widget -> firstrow_index, k = 0; i < widget -> lastrow_index + 1; i++, k++) {
-			rowContainer = (WINDOW**) g_ptr_array_index (widget -> wndTable, k);
-			recordset = g_ptr_array_index (widget -> dataTable, i);
-			for (j = 0; j < widget -> col; j++) {
-				widget -> printData (rowContainer [j], (gpointer) recordset, j);
-			 	wrefresh (rowContainer [j]);
-			}
+		if (widget -> dataFlag == true) {
+				gpointer recordset;
+				int firstrow_index = (int) widget -> firstrow_index;
+				int lastrow_index = (int) widget -> lastrow_index;
+
+				for (i = widget -> firstrow_index, k = 0; i < widget -> lastrow_index + 1; i++, k++) {
+						rowContainer = (WINDOW**) g_ptr_array_index (widget -> wndTable, k);
+						recordset = g_ptr_array_index (widget -> dataTable, i);
+						for (j = 0; j < widget -> col; j++) {
+								widget -> printData (rowContainer [j], (gpointer) recordset, j);
+								wrefresh (rowContainer [j]);
+						}
+				}
 		}
+
 		/* ------------- </DATA UPDATE> -------------- */
 
+		/* ------------- <SET FLAG MEMBERS> ------------ 
+		
+		if (widget -> selected_index == widget -> wndTable -> len - 1 ||
+			widget -> selected_index == 0) 	widget -> wndFlag = false;
+		else widget -> wndFlag = true;
+
+		if (widget -> firstrow_index == 0 ||
+			widget -> lastrow_index == widget -> dataTable -> len - 1) 	widget -> dataFlag = false;
+		else widget -> dataFlag = true;
+
+		 ------------- </SET FLAG MEMBERS> ------------ */
 		
 }			
 
 void inc_rowIndex (WIDGET* widget) {
+
+		/* ------- <SET FLAG MEMBERS> --------  */		
+		if (widget -> selected_index == widget -> wndTable -> len - 1)
+				widget -> wndFlag = false;
+		else widget -> wndFlag = true;
+
+		if (widget -> lastrow_index == widget -> dataTable -> len - 1)
+				widget -> dataFlag = false;
+		else widget -> dataFlag = true;
 		
-		/* ------ <Increase selected_index in the view> ------ */
+		/* -------- </SET FLAG MEMBERS> --------- */
+
+		/* ------ <INCREASE VIEW AND DATA> ------ */
 		
 		int index = widget -> selected_index;
 		index ++;
@@ -195,15 +239,24 @@ void inc_rowIndex (WIDGET* widget) {
 		set_rowIndex (widget, index);
 		update_widget (widget);
 
-		/* ------ </Increase selected_index in the view> ------ */
+		/* ------ </INCREASE VIEW AND DATA> ------ */
 
-		/* ------ <Increase fistrow_index in the data> ------ */
-
-		/* ------ </Increase firstrow_index in the data> ----- */
 }
 
 void dec_rowIndex (WIDGET* widget) {
-	
+
+		/* ------- <SET FLAG MEMBERS> -------- */	
+
+		if (widget -> selected_index == 0)
+				widget -> wndFlag = false;
+		else widget -> wndFlag = true;
+
+		if (widget -> firstrow_index == 0)
+				widget -> dataFlag = false;
+		else widget -> dataFlag = true;
+
+		/* ------- </SET FLAG MEMBERS> -------- */
+
 		/* ------- <Decrease selected_index in the view> ------ */
 		
 		int index = widget -> selected_index;
@@ -222,6 +275,18 @@ void dec_rowIndex (WIDGET* widget) {
 
 void pageup_handler (WIDGET* widget) {
 
+		/* ------- <SET FLAG MEMBERS> -------- */	
+
+		if (widget -> selected_index == 0)
+				widget -> wndFlag = false;
+		else widget -> wndFlag = true;
+
+		if (widget -> firstrow_index == 0)
+				widget -> dataFlag = false;
+		else widget -> dataFlag = true;
+
+		/* ------- </SET FLAG MEMBERS> -------- */
+
 		int index = -1 * (int) (widget -> wndTable -> len);
 		clear_widget (widget);
 		set_rowIndex (widget, index);
@@ -231,12 +296,25 @@ void pageup_handler (WIDGET* widget) {
 
 void pagedown_handler (WIDGET* widget) {
 
+		/* ------- <SET FLAG MEMBERS> --------  */		
+		if (widget -> selected_index == widget -> wndTable -> len - 1)
+				widget -> wndFlag = false;
+		else widget -> wndFlag = true;
+
+		if (widget -> lastrow_index == widget -> dataTable -> len - 1)
+				widget -> dataFlag = false;
+		else widget -> dataFlag = true;
+		
+		/* -------- </SET FLAG MEMBERS> --------- */
+
 		int index = (int) (widget -> wndTable -> len) * 2 - 1;
 		clear_widget (widget);
 		set_rowIndex (widget, index);
 		update_widget (widget);
 
 }
+
+
 
 void del_widget (WIDGET* widget) {
 		WINDOW** rowContainer;
@@ -354,7 +432,7 @@ int main(int argc, const char *argv[])
 			default :
 				break;
 		}
-		usleep (10000);		
+		usleep (100);		
 	} 
 	
 	g_ptr_array_free (datatable, TRUE);
