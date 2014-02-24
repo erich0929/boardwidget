@@ -9,10 +9,10 @@ typedef void (*PRINT_HEADER_FUNC) (WINDOW*, int);
 typedef void (*PRINT_DATA_FUNC) (WINDOW*, gpointer, int);
 
 typedef struct _WIDGET {
-	GPtrArray* wndTable;
 	WINDOW* mainWnd;
 	WINDOW* headerWnd;
 
+	GPtrArray* wndTable;
 	GPtrArray* dataTable;
 	PRINT_HEADER_FUNC printHeader;
 	PRINT_DATA_FUNC printData;
@@ -305,17 +305,23 @@ void pagedown_handler (WIDGET* widget) {
 
 }
 
-
-
 void del_widget (WIDGET* widget) {
 	WINDOW** rowContainer;
 	int i, j;
 	for (i = 0; i < widget -> row; i++) {
 		rowContainer = (WINDOW**) g_ptr_array_index (widget -> wndTable, i);
 		for (j = 0; j < widget -> col; j++) {
+	/*		wclear (rowContainer [j]);
+			wrefresh (rowContainer [j]); */
 			delwin (rowContainer [j]);
 		}
 	}
+	
+	wclear (widget -> headerWnd);
+	wrefresh (widget -> headerWnd);
+	delwin (widget -> headerWnd);
+	wclear (widget -> mainWnd);
+	wrefresh (widget -> mainWnd);
 	delwin (widget -> mainWnd);
 	g_ptr_array_free (widget -> wndTable, TRUE);
 	free (widget);
@@ -364,25 +370,29 @@ MYDATA mydata [] = {{1, "수혜", 25},
 	{5, "법륜", 65},
 	{6, "재은", 2},
 	{7, "효주", 2}};
+
 void init_scr()
 {
 	initscr();
 	start_color(); 
-	curs_set(0); 
+	curs_set(0);
 	noecho();
-	nodelay (stdscr, TRUE);
-	/* halfdelay (1);	*/
+	nodelay (stdscr, TRUE); 
 	keypad(stdscr, TRUE);
 	use_default_colors (); 
 	init_pair (2, COLOR_YELLOW, COLOR_GREEN);
 	refresh ();
 }
 
+void resizeHandler () {
+
+}
 int main(int argc, const char *argv[])
 {
 	setlocale(LC_ALL, "ko_KR.utf8");
 	init_scr ();
 	cbreak ();	
+	/* signal(SIGWINCH, resizeHandler); */
 
 	GPtrArray* datatable = g_ptr_array_new ();
 
@@ -415,6 +425,19 @@ int main(int argc, const char *argv[])
 			case KEY_NPAGE :
 				pagedown_handler (widget);
 				break;
+		
+			case KEY_RESIZE :
+	
+				/* clear_widget (widget); */
+			
+				refresh ();
+				del_widget (widget);
+				widget = new_widget (widget, 10, 1, 1, 20, datatable, printHeader, printData); 
+				update_widget (widget);
+	
+				refresh ();
+				break;
+	
 			case 's' :
 				g_ptr_array_sort (widget -> dataTable, sorting_by_age);
 				clear_widget (widget);
@@ -423,7 +446,7 @@ int main(int argc, const char *argv[])
 			default :
 				break;
 		}
-		usleep (1000);		
+		usleep (1000);	
 	} 
 
 	g_ptr_array_free (datatable, TRUE);
