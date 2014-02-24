@@ -219,6 +219,25 @@ void dec_rowIndex (WIDGET* widget) {
 		/* ------ </Increase firstrow_index in the data> ----- */
 
 }
+
+void pageup_handler (WIDGET* widget) {
+
+		int index = -1 * (int) (widget -> wndTable -> len);
+		clear_widget (widget);
+		set_rowIndex (widget, index);
+		update_widget (widget);
+
+}
+
+void pagedown_handler (WIDGET* widget) {
+
+		int index = (int) (widget -> wndTable -> len) * 2 - 1;
+		clear_widget (widget);
+		set_rowIndex (widget, index);
+		update_widget (widget);
+
+}
+
 void del_widget (WIDGET* widget) {
 		WINDOW** rowContainer;
 		int i, j;
@@ -256,23 +275,26 @@ static void printData (WINDOW* wnd, gpointer data, int colindex) {
 
 }
 
-static gint sorting_by_no (gpointer a, gpointer b) {
+static gint sorting_by_age (gpointer a, gpointer b) {
 	   	
 		MYDATA* dataA = *(MYDATA**) a;
 		MYDATA* dataB = *(MYDATA**) b;
 		
-		int tempA = dataA -> no;
-		int tempB = dataB -> no;
+		int tempA = dataA -> age;
+		int tempB = dataB -> age;
 
 		if (tempA - tempB > 0) return 1;
 		else if (tempA - tempB == 0) return 0;
 		else if (tempA - tempB < 0) return -1;
 }		
 
-MYDATA mydata [] = {{5, "수혜", 25},
+MYDATA mydata [] = {{1, "수혜", 25},
 					{2, "광로", 30},
-					{7, "사츠코", 56},
-					{6, "아베", 52}};
+					{3, "사츠코", 56},
+					{4, "아베", 52},
+					{5, "법륜", 65},
+					{6, "재은", 2},
+					{7, "효주", 2}};
 void init_scr()
 {
 		initscr();
@@ -294,10 +316,13 @@ int main(int argc, const char *argv[])
 	cbreak ();	
 
 	GPtrArray* datatable = g_ptr_array_new ();
-	g_ptr_array_add (datatable, &mydata [0]);
-	g_ptr_array_add (datatable, &mydata [1]);
-	g_ptr_array_add (datatable, &mydata [2]);
-	g_ptr_array_add (datatable, &mydata [3]);
+	
+	int length = sizeof (mydata) / sizeof (MYDATA);
+	
+	int i; 
+	for (i = 0; i <length; i++) {
+		g_ptr_array_add (datatable, &mydata [i]);
+	}
 
 	WIDGET* widget = new_widget (widget, 5, 1, 1, 20, datatable, printHeader, printData);
 /*	refresh (); */
@@ -315,15 +340,21 @@ int main(int argc, const char *argv[])
 			case KEY_DOWN :
 				inc_rowIndex (widget);
 				break;
+			case KEY_PPAGE :
+				pageup_handler (widget);
+				break;
+			case KEY_NPAGE :
+				pagedown_handler (widget);
+				break;
 			case 's' :
-				g_ptr_array_sort (widget -> dataTable, sorting_by_no);
+				g_ptr_array_sort (widget -> dataTable, sorting_by_age);
 				clear_widget (widget);
 				update_widget (widget);
-
+				break;
 			default :
 				break;
 		}
-		usleep (1000);		
+		usleep (10000);		
 	} 
 	
 	g_ptr_array_free (datatable, TRUE);
