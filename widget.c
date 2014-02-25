@@ -86,16 +86,16 @@ WIDGET* new_widget (WIDGET* widget, int row, int col,
 	return widget;
 }
 
-void show_widget (WIDGET* widget, int row, int col) {
+void set_base_color (WIDGET* widget, chtype color) {
 
-	WINDOW** rowContainer;
-	int i, j;
-	for (i = 0; i < row; i++) {
-		rowContainer = (WINDOW**) g_ptr_array_index (widget -> wndTable, i);
-		for (j = 0; j < col; j++) {
-			wrefresh (rowContainer [j]);
-		}
-	}
+	widget -> base_color = color;
+
+}
+
+void set_selected_color (WIDGET* widget, chtype color) {
+
+	widget -> selected_color = color;
+
 }
 
 void set_rowIndex (WIDGET* widget, int index) {
@@ -305,6 +305,43 @@ void pagedown_handler (WIDGET* widget) {
 
 }
 
+void resize_handler (WIDGET* widget) {
+
+	WINDOW* mainWnd = widget -> mainWnd;
+	WINDOW* headerWnd = widget -> headerWnd;
+
+	GPtrArray* wndTable = widget -> wndTable;
+	GPtrArray* dataTable = widget -> dataTable;
+	PRINT_HEADER_FUNC printHeader = widget -> printHeader;
+	PRINT_DATA_FUNC printData = widget -> printData;
+	guint firstrow_index = widget -> firstrow_index;
+	guint lastrow_index = widget -> lastrow_index;
+
+	int row = widget -> row;
+	int col = widget -> col;
+	int row_width = widget -> row_width;
+	int col_width = widget -> col_width;
+	chtype base_color = widget -> base_color;
+	chtype selected_color = widget -> selected_color;
+	guint selected_index = widget -> selected_index;
+
+	bool wndFlag;
+	bool dataFlag;	
+
+	refresh (); /* It's very essential!! */
+
+	del_widget (widget);
+	widget = new_widget (widget, row, col, row_width, col_width, dataTable, printHeader, printData); 
+	set_rowIndex (widget, selected_index);
+	set_selected_color (widget, selected_color);
+	set_base_color (widget, base_color);
+	update_widget (widget);
+
+	refresh ();
+
+
+}
+
 void del_widget (WIDGET* widget) {
 	WINDOW** rowContainer;
 	int i, j;
@@ -429,13 +466,7 @@ int main(int argc, const char *argv[])
 			case KEY_RESIZE :
 	
 				/* clear_widget (widget); */
-			
-				refresh ();
-				del_widget (widget);
-				widget = new_widget (widget, 10, 1, 1, 20, datatable, printHeader, printData); 
-				update_widget (widget);
-	
-				refresh ();
+				resize_handler (widget);
 				break;
 	
 			case 's' :
