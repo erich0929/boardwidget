@@ -419,7 +419,7 @@ void resize_handler (WIDGET* widget) {
 void del_widget (WIDGET* widget) {
 	WINDOW** rowContainer;
 	int i, j;
-	for (i = 0; i < widget -> row; i++) {
+	for (i = 0; i < widget -> wndTable -> len; i++) {
 		rowContainer = (WINDOW**) g_ptr_array_index (widget -> wndTable, i);
 		for (j = 0; j < widget -> col; j++) {
 	/*		wclear (rowContainer [j]);
@@ -477,12 +477,12 @@ static gint sorting_by_age (gpointer a, gpointer b) {
 }		
 
 MYDATA mydata [] = {{1, "수혜", 25},
-	{2, "광로", 30},
-	{3, "사츠코", 56},
-	{4, "아베", 52},
-	{5, "법륜", 65},
-	{6, "재은", 2},
-	{7, "효주", 2}};
+					{2, "광로", 30},
+					{3, "사츠코", 56},
+					{4, "아베", 52},
+					{5, "법륜", 65},
+					{6, "재은", 2},
+					{7, "효주", 2}};
 
 void init_scr()
 {
@@ -522,7 +522,7 @@ int main(int argc, const char *argv[])
 	point_info.x_from_origin = 0;
 	point_info.y_from_origin = 0;
 
-	WIDGET* widget = new_widget (widget, 10, 1, 1, 20, &point_info, datatable, printHeader, printData);
+	WIDGET* widget = new_widget (widget, 5, 1, 1, 20, &point_info, datatable, printHeader, printData);
 	/*	refresh (); */
 
 	clear_widget (widget);
