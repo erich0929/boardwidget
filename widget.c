@@ -25,8 +25,8 @@ typedef struct _WIDGET {
 	GPtrArray* dataTable;
 	PRINT_HEADER_FUNC printHeader;
 	PRINT_DATA_FUNC printData;
-	guint firstrow_index;
-	guint lastrow_index;
+	int firstrow_index;
+	int lastrow_index;
 
 	int row;
 	int col;
@@ -64,6 +64,10 @@ WIDGET* new_widget (WIDGET* widget, int row, int col,
 	widget -> col = col;
 	widget -> row_width = row_width;
 	widget -> col_width = col_width;
+	
+	widget -> firstrow_index = 0;
+	widget -> lastrow_index = 0;
+
 	widget -> base_color = COLOR_PAIR (0);  
 	widget -> selected_color = COLOR_PAIR (2);
 	widget -> selected_index = 0;
@@ -174,26 +178,46 @@ void set_rowIndex (WIDGET* widget, int index) {
 	}
 	else if (index > (int) length - 1) {
 		widget -> selected_index = length - 1;
+
 	}
 	else widget -> selected_index = index;
+
+
 	/* ------------- </SET selected_index> ------------------ */
 
 	/* ------------- <SET firstrow_index and lastrow_index> -------------- */
 	if (index <= 0) {
 		widget -> firstrow_index = ((int) (widget -> firstrow_index) + index < 0) ? 0 : (int) widget -> firstrow_index + index;
-		widget -> lastrow_index = (widget -> dataTable -> len < widget -> wndTable -> len) ?
+	/*	widget -> lastrow_index = (widget -> dataTable -> len < widget -> wndTable -> len) ?
 			widget -> firstrow_index + widget -> dataTable -> len -1 :
-			widget -> firstrow_index + widget -> wndTable -> len -1;
+			widget -> firstrow_index + widget -> wndTable -> len -1; */
+
+		widget -> lastrow_index = widget -> firstrow_index + ((int) length - 1);
+		widget -> lastrow_index = (widget -> lastrow_index < ((int) (widget -> dataTable -> len) - 1) ?
+									widget -> lastrow_index : (int) (widget -> dataTable -> len) - 1);
+		
 	}
-	else if (index > (int) length - 1) {
+
+	else if (index >= ((int) length - 1)) {
 		widget -> lastrow_index = ((int) (widget -> lastrow_index) + (index - ((int) length - 1)) > widget -> dataTable -> len - 1) ?
 			widget -> dataTable -> len - 1 : (int) (widget -> lastrow_index) + (index - ((int) length - 1));
-		widget -> firstrow_index = (widget -> dataTable -> len < widget -> wndTable -> len) ?
+	/*	widget -> firstrow_index = (widget -> dataTable -> len < widget -> wndTable -> len) ?
 			widget -> lastrow_index - (widget -> dataTable -> len - 1) :
-			widget -> lastrow_index - (widget -> wndTable -> len - 1);	
+			widget -> lastrow_index - (widget -> wndTable -> len - 1);	*/
+
+		widget -> firstrow_index = widget -> lastrow_index - ((int) length - 1);
+		widget -> firstrow_index = (widget -> firstrow_index > 0) ?
+									widget -> firstrow_index : 0;
+
 	}
 
 	/* ------------- </SET firstrow_index and lastrow_index> -------------- */
+
+	if (widget -> selected_index > (widget -> lastrow_index - widget -> firstrow_index)) {
+				widget -> selected_index =
+					(widget -> lastrow_index - widget -> firstrow_index);
+	}
+
 }
 
 /* clear_widget must be called before new setting widget !! */
@@ -216,7 +240,7 @@ void clear_widget (WIDGET* widget) {
 
 	/* ------------- <CLEAR DATA> ---------------- */
 	if (widget -> dataFlag == true) {
-		for (i = 0; i < widget -> row; i++) {
+		for (i = 0; i < widget -> wndTable -> len; i++) { /* debug : i < row */
 			rowContainer = (WINDOW**) g_ptr_array_index (widget -> wndTable, i);
 			for (j = 0; j < widget -> col; j++) {
 				wdeleteln (rowContainer [j]); /* clear data */
@@ -243,7 +267,7 @@ void update_widget (WIDGET* widget) {
 			wbkgd (rowContainer [j], widget -> selected_color);
 			wrefresh (rowContainer [j]);
 		}
-		wrefresh (widget -> mainWnd);
+		wrefresh (widget -> mainWnd); 
 	}
 
 	/* ------------- </VIEW UPDATE> -------------- */
@@ -392,8 +416,8 @@ void resize_handler (WIDGET* widget) {
 	chtype selected_color = widget -> selected_color;
 	guint selected_index = widget -> selected_index;
 
-	bool wndFlag;
-	bool dataFlag;	
+	/* bool wndFlag;
+	*  bool dataFlag;	*/
 
 	refresh (); /* It's very essential!! */
 
@@ -403,10 +427,35 @@ void resize_handler (WIDGET* widget) {
 	origin_point_info.x_from_origin = widget -> origin_point_info -> x_from_origin;
 	origin_point_info.y_from_origin = widget -> origin_point_info -> y_from_origin;
 
-	del_widget (widget);
+	del_widget (widget); /* delete widget */
 	widget = new_widget (widget, row, col, row_width, col_width, &origin_point_info
 						,dataTable, printHeader, printData); 
-	set_rowIndex (widget, selected_index);
+
+	guint length = widget -> wndTable -> len;
+
+	widget -> firstrow_index = firstrow_index; 	/* remembers */
+	/* widget -> lastrow_index = lastrow_index; */	/* past widget data */
+
+	widget -> lastrow_index = (widget -> firstrow_index + ((int) length - 1));
+	widget -> lastrow_index = (widget -> lastrow_index < ((int) (widget -> dataTable -> len) - 1)) ?
+								widget -> lastrow_index : ((int) (widget -> dataTable -> len) - 1);
+	
+	/* set_rowIndex (widget, 0); */ /* update firstrow_index and lastrow_index !! : overflow critical window line - debug  */
+
+	/* set_rowIndex (widget, selected_index); */
+	
+	/* ------------- <SET selected_index> ----------------- */
+	
+	if (selected_index <= 0) {
+		widget -> selected_index = 0;
+	}
+	else if (selected_index > (int) length - 1) {
+		widget -> selected_index = length - 1;
+	}
+	else widget -> selected_index = selected_index;
+	
+	/* ------------- </SET selected_index> ------------------ */
+
 	set_selected_color (widget, selected_color);
 	set_base_color (widget, base_color);
 	update_widget (widget);
@@ -497,9 +546,6 @@ void init_scr()
 	refresh ();
 }
 
-void resizeHandler () {
-
-}
 int main(int argc, const char *argv[])
 {
 	setlocale(LC_ALL, "ko_KR.utf8");
@@ -526,7 +572,7 @@ int main(int argc, const char *argv[])
 	/*	refresh (); */
 
 	clear_widget (widget);
-	set_rowIndex (widget, 0);
+	set_rowIndex (widget, 10);
 	update_widget (widget);
 
 	int ch ;
