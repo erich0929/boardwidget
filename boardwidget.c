@@ -144,7 +144,7 @@ BOARD_WIDGET* new_board (BOARD_WIDGET* board, int row, int col,
 	board -> wndTable = g_ptr_array_new ();
 
 	/* Create new header window */
-	board -> headerWnd = subwin (board -> mainWnd, 1, board -> col_width + add_col_width, 2, 2);
+	board -> headerWnd = subwin (board -> mainWnd, 1, board -> col_width * board -> col + add_col_width, 2, 2);
 	for (j = 0; j < board -> col; j++) {
 		wbkgd (board -> headerWnd, board -> base_color | A_BOLD);
 		board -> printHeader (board -> headerWnd, j);
@@ -293,6 +293,7 @@ void update_board (BOARD_WIDGET* board) {
 			rowContainer = (WINDOW**) g_ptr_array_index (board -> wndTable, k);
 			recordset = g_ptr_array_index (board -> dataTable, i);
 			for (j = 0; j < board -> col; j++) {
+				wattron (rowContainer [j], A_BOLD);
 				board -> printData (rowContainer [j], (gpointer) recordset, j);
 				wrefresh (rowContainer [j]);
 			}
@@ -658,13 +659,14 @@ void option_handler (BOARD_WIDGET* board) {
 
 	wdeleteln (board -> headerWnd);
 	wmove (board -> headerWnd, 0, 0);
+	wattron (board -> headerWnd, A_BOLD);
 	wprintw (board -> headerWnd, "set options [bs]");
 	wrefresh (board -> headerWnd);
 
 		switch (ch) {
 			case 'b' :
 				werase (board -> headerWnd);
-				wbkgd (board -> headerWnd, COLOR_PAIR (i));
+				wbkgd (board -> headerWnd, COLOR_PAIR (i) | A_BOLD);
 				wprintw (board -> headerWnd, "Base_col [0-7] : %d", i);
 				wrefresh (board -> headerWnd);
 				
@@ -673,7 +675,7 @@ void option_handler (BOARD_WIDGET* board) {
 						case KEY_UP :
 							i = (++i < 8) ? i : 7;
 							werase (board -> headerWnd);
-							wbkgd (board -> headerWnd, COLOR_PAIR (i));
+							wbkgd (board -> headerWnd, COLOR_PAIR (i) | A_BOLD);
 							wprintw (board -> headerWnd, "Base_col [0-7] : %d", i);
 							wrefresh (board -> headerWnd);
 							break;
@@ -681,7 +683,7 @@ void option_handler (BOARD_WIDGET* board) {
 						case KEY_DOWN :
 							i = (--i > 0) ? i : 0;
 							werase (board -> headerWnd);
-							wbkgd (board -> headerWnd, COLOR_PAIR (i));
+							wbkgd (board -> headerWnd, COLOR_PAIR (i) | A_BOLD);
 							wprintw (board -> headerWnd, "Base_col [0-7] : %d", i);
 							wrefresh (board -> headerWnd);
 							break;

@@ -13,18 +13,31 @@ typedef struct _MYDATA {
 
 static void printHeader (WINDOW* wnd, int colindex) {
 
-	wprintw (wnd, "No.    NAME\t\tAGE");
+	if (colindex == 0) {
+		wprintw (wnd, "%-10s%-10s%-10s", "NO", "NAME", "AGE");
+		wrefresh (wnd);
+	}
+
 }	
 
 static void printData (WINDOW* wnd, gpointer data, int colindex) {
 
 	MYDATA* mydata = (MYDATA*) data;
-	wattron (wnd, A_BOLD);
-	wprintw (wnd, "NO.%-4d%s\t\t%d",  mydata -> no,
-			mydata -> name,
-			mydata -> age);
 
-
+	switch (colindex){
+		case 0 :
+			wprintw (wnd, "NO.%d", mydata -> no);
+			wrefresh (wnd);
+			break;
+		case 1 :
+			wprintw (wnd, "%s", mydata -> name);
+			wrefresh (wnd);
+			break;
+		case 2 :
+			wprintw (wnd, "%d", mydata -> age);
+			wrefresh (wnd);
+			break;
+	}
 }
 
 static gint sorting_by_age (gpointer a, gpointer b) {
@@ -97,7 +110,7 @@ int main(int argc, const char *argv[])
 	point_info.x_from_origin = 0;
 	point_info.y_from_origin = 0;
 
-	BOARD_WIDGET* board = new_board (board, 5, 1, 1, 20, &point_info, datatable, printHeader, printData);
+	BOARD_WIDGET* board = new_board (board, 5, 3, 1, 10, &point_info, datatable, printHeader, printData);
 	/*	refresh (); */
 	
 	set_rowIndex (board, 0);
