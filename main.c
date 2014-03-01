@@ -4,7 +4,6 @@
 
 #include "boardwidget.h"
 
-
 /* -------------------------- <USER AREA> -------------------------- */
 typedef struct _MYDATA {
 	int no;
@@ -20,6 +19,7 @@ static void printHeader (WINDOW* wnd, int colindex) {
 static void printData (WINDOW* wnd, gpointer data, int colindex) {
 
 	MYDATA* mydata = (MYDATA*) data;
+	wattron (wnd, A_BOLD);
 	wprintw (wnd, "NO.%-4d%s\t\t%d",  mydata -> no,
 			mydata -> name,
 			mydata -> age);
@@ -52,10 +52,6 @@ MYDATA mydata [] = {{1, (wchar_t*) "수혜", 25},
 					{10, (wchar_t*) "xabi", 36},
 					{11, (wchar_t*) "산체스", 28}};
 
-
-
-
-
 void init_scr()
 {
 	initscr();
@@ -65,7 +61,15 @@ void init_scr()
 	nodelay (stdscr, TRUE); 
 	keypad(stdscr, TRUE);
 	use_default_colors (); 
-	init_pair (2, COLOR_YELLOW, COLOR_GREEN);
+	short r, g, b;
+	r=81, g=243, b=22;
+	color_content (COLOR_GREEN, &r, &g, &b);
+	r=8, g=35, b=77;
+	color_content (COLOR_BLUE, &r, &g, &b);
+	r=249, g=249, b=41;
+	color_content (COLOR_YELLOW, &r, &g, &b);
+	init_pair (1, COLOR_YELLOW, COLOR_GREEN);
+	init_pair (2, COLOR_YELLOW, COLOR_BLUE);
 	refresh ();
 }
 
@@ -89,7 +93,7 @@ int main(int argc, const char *argv[])
 	point_info.origin_x = 1;
 	point_info.origin_y = 1;
 	point_info.base_color = COLOR_PAIR (0);
-	point_info.selected_color = COLOR_PAIR (2);
+	point_info.selected_color = COLOR_PAIR (1);
 	point_info.x_from_origin = 0;
 	point_info.y_from_origin = 0;
 

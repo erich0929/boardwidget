@@ -146,6 +146,7 @@ BOARD_WIDGET* new_board (BOARD_WIDGET* board, int row, int col,
 	/* Create new header window */
 	board -> headerWnd = subwin (board -> mainWnd, 1, board -> col_width + add_col_width, 2, 2);
 	for (j = 0; j < board -> col; j++) {
+		wbkgd (board -> headerWnd, board -> base_color | A_BOLD);
 		board -> printHeader (board -> headerWnd, j);
 		wrefresh (board -> headerWnd);	
 	}
@@ -238,7 +239,7 @@ void clear_board (BOARD_WIDGET* board) {
 	if (board -> wndFlag == true) {
 		rowContainer = (WINDOW**) g_ptr_array_index (board -> wndTable , board -> selected_index);
 		for (j = 0; j < board -> col; j++) {
-			wbkgd (rowContainer [j], board -> base_color);
+			wbkgd (rowContainer [j], board -> base_color | A_BOLD);
 			wrefresh (rowContainer [j]);
 		}
 	}
@@ -273,7 +274,7 @@ void update_board (BOARD_WIDGET* board) {
 		rowContainer = (WINDOW**) g_ptr_array_index (board -> wndTable, board -> selected_index);
 
 		for (j = 0; j < board -> col; j++) {
-			wbkgd (rowContainer [j], board -> selected_color);
+			wbkgd (rowContainer [j], board -> selected_color | A_BOLD);
 			wrefresh (rowContainer [j]);
 		}
 		wrefresh (board -> mainWnd); 
@@ -323,7 +324,7 @@ void scrolldown_handler (BOARD_WIDGET* board) {
 	/* -------- </SET FLAG MEMBERS> --------- */
 
 	/* ------ <INCREASE VIEW AND DATA> ------ */
-
+	
 	int index = board -> selected_index;
 	index ++;
 	clear_board (board);
@@ -486,7 +487,7 @@ void activate_board (BOARD_WIDGET* board) {
 	rowContainer = (WINDOW**) g_ptr_array_index (board -> wndTable, board -> selected_index);
 
 	for (j = 0; j < board -> col; j++) {
-		wbkgd (rowContainer [j], board -> selected_color);
+		wbkgd (rowContainer [j], board -> selected_color | A_BOLD);
 		wrefresh (rowContainer [j]);
 	}
 	wrefresh (board -> mainWnd); 
@@ -503,7 +504,7 @@ void inactivate_board (BOARD_WIDGET* board) {
 	/* ------------- <CLEAR VIEW> ------------- */
 	rowContainer = (WINDOW**) g_ptr_array_index (board -> wndTable , board -> selected_index);
 	for (j = 0; j < board -> col; j++) {
-		wbkgd (rowContainer [j], board -> base_color);
+		wbkgd (rowContainer [j], board -> base_color | A_BOLD);
 		wrefresh (rowContainer [j]);
 	}
 	/* ------------- </CLEAR VIEW> ------------- */
