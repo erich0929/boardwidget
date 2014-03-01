@@ -14,13 +14,13 @@ typedef struct _MYDATA {
 
 static void printHeader (WINDOW* wnd, int colindex) {
 
-	wprintw (wnd, "No.  NAME\tAGE");
+	wprintw (wnd, "No.    NAME\t\tAGE");
 }	
 
 static void printData (WINDOW* wnd, gpointer data, int colindex) {
 
 	MYDATA* mydata = (MYDATA*) data;
-	wprintw (wnd, "NO.%d %s\t%d",  mydata -> no,
+	wprintw (wnd, "NO.%-4d%s\t\t%d",  mydata -> no,
 			mydata -> name,
 			mydata -> age);
 
@@ -46,7 +46,15 @@ MYDATA mydata [] = {{1, (wchar_t*) "수혜", 25},
 					{4, (wchar_t*) "abe", 52},
 					{5, (wchar_t*) "법륜", 65},
 					{6, (wchar_t*) "재은", 2},
-					{7, (wchar_t*) "효주", 2}};
+					{7, (wchar_t*) "효주", 2},
+					{8, (wchar_t*) "이니에스타", 27},
+					{9, (wchar_t*) "messi", 26},
+					{10, (wchar_t*) "xabi", 36},
+					{11, (wchar_t*) "산체스", 28}};
+
+
+
+
 
 void init_scr()
 {
@@ -80,6 +88,8 @@ int main(int argc, const char *argv[])
 	POINT_INFO point_info;
 	point_info.origin_x = 1;
 	point_info.origin_y = 1;
+	point_info.base_color = COLOR_PAIR (0);
+	point_info.selected_color = COLOR_PAIR (2);
 	point_info.x_from_origin = 0;
 	point_info.y_from_origin = 0;
 
@@ -95,6 +105,7 @@ int main(int argc, const char *argv[])
 		switch (ch) {
 			case 'b' :
 				board_eventhandler (board);
+				
 				break;
 
 			case 's' :
@@ -102,6 +113,7 @@ int main(int argc, const char *argv[])
 				clear_board (board);
 				update_board (board);
 				break;
+
 			default :
 				break;
 		}

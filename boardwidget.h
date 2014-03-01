@@ -12,6 +12,8 @@ typedef struct _POINT_INFO {
 
 	int origin_x;
 	int origin_y;
+	chtype base_color;
+	chtype selected_color;
 	int x_from_origin;
 	int y_from_origin;
 
@@ -61,9 +63,11 @@ void pagedown_handler (BOARD_WIDGET* board);
 void resize_handler (BOARD_WIDGET* board);
 void activate_board (BOARD_WIDGET* board);
 void inactivate_board (BOARD_WIDGET* board);
+void set_colors (BOARD_WIDGET* board, chtype base_color, chtype selected_color);
 void board_eventhandler (BOARD_WIDGET* board);
 void del_board (BOARD_WIDGET* board);
 
+void option_handler (BOARD_WIDGET* board);
 #endif /* end of include guard: BOARDWIDGET_H */
 
 

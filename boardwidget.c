@@ -1,4 +1,6 @@
 #include "boardwidget.h"
+
+
 /*
 typedef struct _POINT_INFO {
 
@@ -63,41 +65,53 @@ BOARD_WIDGET* new_board (BOARD_WIDGET* board, int row, int col,
 	board -> firstrow_index = 0;
 	board -> lastrow_index = 0;
 
-	board -> base_color = COLOR_PAIR (0);  
-	board -> selected_color = COLOR_PAIR (2);
+	board -> base_color = point_info -> base_color;  
+	board -> selected_color = point_info -> selected_color;
 	board -> selected_index = 0;
-
+	
+	/* ------ <NOTICE THAT IT'S FIRST TIME TO CREATE WIDGET> ------- */
 	if (point_info -> x_from_origin == 0 && point_info -> y_from_origin == 0) {
 
 		board -> point_info = (POINT_INFO*) malloc (sizeof (POINT_INFO));
 		board -> point_info -> origin_x = point_info -> origin_x;
 		board -> point_info -> origin_y = point_info -> origin_y;
+		board -> point_info -> base_color = point_info -> base_color;
+		board -> point_info -> selected_color = point_info -> selected_color;
 		board -> point_info -> x_from_origin = maxX - (board -> point_info -> origin_x);
 		board -> point_info -> y_from_origin = maxY - (board -> point_info -> origin_y);
 		
 		board -> origin_point_info = (POINT_INFO*) malloc (sizeof (POINT_INFO));
 		board -> origin_point_info -> origin_x = board -> point_info -> origin_x;
 		board -> origin_point_info -> origin_y = board -> point_info -> origin_y;
+		board -> origin_point_info -> base_color = board -> point_info -> base_color;
+		board -> origin_point_info -> selected_color = board -> point_info -> selected_color;
 		board -> origin_point_info -> x_from_origin = board -> point_info -> x_from_origin;
 		board -> origin_point_info -> y_from_origin = board -> point_info -> y_from_origin;
 
 	}
+	/* ------ </NOTICE THAT IT'S FIRST TIME TO CREATE WIDGET> ------- */
+
+	/* ------ <NOTICE TO REMEMBER LAST WIDGET WHICH IS CLEARED> ------ */
 	else {
 
 		board -> origin_point_info = (POINT_INFO*) malloc (sizeof (POINT_INFO));
-
 		board -> origin_point_info -> origin_x = point_info -> origin_x;
 		board -> origin_point_info -> origin_y = point_info -> origin_y;
+		board -> origin_point_info -> base_color = point_info -> base_color;
+		board -> origin_point_info -> selected_color = point_info -> selected_color;
 		board -> origin_point_info -> x_from_origin = point_info -> x_from_origin;
 		board -> origin_point_info -> y_from_origin = point_info -> y_from_origin;
 		
 		board -> point_info = (POINT_INFO*) malloc (sizeof (POINT_INFO));
 		board -> point_info -> origin_x = point_info -> origin_x;
 		board -> point_info -> origin_y = point_info -> origin_y;
+		board -> point_info -> base_color = point_info -> base_color;
+		board -> point_info -> selected_color = point_info -> selected_color;
 		board -> point_info -> x_from_origin = maxX - (board -> point_info -> origin_x);
 		board -> point_info -> y_from_origin = maxY - (board -> point_info -> origin_y);
 
 	}
+	/* ------ </NOTICE TO REMEMBER LAST WIDGET WHICH IS CLEARED> ------ */
 
 	int add_row = 
 		board -> point_info -> y_from_origin - board -> origin_point_info -> y_from_origin;
@@ -419,6 +433,10 @@ void resize_handler (BOARD_WIDGET* board) {
 	POINT_INFO origin_point_info;
 	origin_point_info.origin_x = board -> origin_point_info -> origin_x;
 	origin_point_info.origin_y = board -> origin_point_info -> origin_y;
+	
+	origin_point_info.base_color = board -> point_info -> base_color;			/* <get recent color infomation> */
+	origin_point_info.selected_color = board -> point_info -> selected_color;   /* </get recent color information> */
+
 	origin_point_info.x_from_origin = board -> origin_point_info -> x_from_origin;
 	origin_point_info.y_from_origin = board -> origin_point_info -> y_from_origin;
 
@@ -456,8 +474,6 @@ void resize_handler (BOARD_WIDGET* board) {
 	update_board (board);
 
 	refresh ();
-
-
 }
 
 void activate_board (BOARD_WIDGET* board) {
@@ -495,6 +511,77 @@ void inactivate_board (BOARD_WIDGET* board) {
 
 }
 
+
+void set_colors (BOARD_WIDGET* board, chtype base_color, chtype selected_color) {
+
+	WINDOW* mainWnd = board -> mainWnd;
+	WINDOW* headerWnd = board -> headerWnd;
+
+	GPtrArray* wndTable = board -> wndTable;
+	GPtrArray* dataTable = board -> dataTable;
+	PRINT_HEADER_FUNC printHeader = board -> printHeader;
+	PRINT_DATA_FUNC printData = board -> printData;
+	guint firstrow_index = board -> firstrow_index;
+	guint lastrow_index = board -> lastrow_index;
+
+	int row = board -> row;
+	int col = board -> col;
+	int row_width = board -> row_width;
+	int col_width = board -> col_width;
+
+	guint selected_index = board -> selected_index;
+
+	/* bool wndFlag;
+	*  bool dataFlag;	*/
+
+	refresh (); /* It's very essential!! */
+
+	POINT_INFO origin_point_info;
+	origin_point_info.origin_x = board -> origin_point_info -> origin_x;
+	origin_point_info.origin_y = board -> origin_point_info -> origin_y;
+	
+	origin_point_info.base_color = base_color;			/* <get recent color infomation> */
+	origin_point_info.selected_color = selected_color;   /* </get recent color information> */
+
+	origin_point_info.x_from_origin = board -> origin_point_info -> x_from_origin;
+	origin_point_info.y_from_origin = board -> origin_point_info -> y_from_origin;
+
+	del_board (board); /* delete board */
+	board = new_board (board, row, col, row_width, col_width, &origin_point_info
+						,dataTable, printHeader, printData); 
+
+	guint length = board -> wndTable -> len;
+
+	board -> firstrow_index = firstrow_index; 	/* remembers */
+	/* board -> lastrow_index = lastrow_index; */	/* past board data */
+
+	board -> lastrow_index = (board -> firstrow_index + ((int) length - 1));
+	board -> lastrow_index = (board -> lastrow_index < ((int) (board -> dataTable -> len) - 1)) ?
+								board -> lastrow_index : ((int) (board -> dataTable -> len) - 1);
+	
+	/* set_rowIndex (board, 0); */ /* update firstrow_index and lastrow_index !! : overflow critical window line - debug  */
+
+	/* set_rowIndex (board, selected_index); */
+	
+	/* ------------- <SET selected_index> ----------------- */
+	
+	if (selected_index <= 0) {
+		board -> selected_index = 0;
+	}
+	else if (selected_index > (int) length - 1) {
+		board -> selected_index = length - 1;
+	}
+	else board -> selected_index = selected_index;
+	
+	/* ------------- </SET selected_index> ------------------ */
+
+	set_selected_color (board, selected_color);
+	set_base_color (board, base_color);
+	update_board (board);
+
+	refresh ();
+}
+
 void board_eventhandler (BOARD_WIDGET* board) {
 	
 	int ch;
@@ -523,6 +610,9 @@ void board_eventhandler (BOARD_WIDGET* board) {
 			case KEY_RESIZE :
 				/* clear_board (board); */
 				resize_handler (board);
+				break;
+			case 'o' :
+				option_handler (board);
 				break;
 		}
 		usleep (1000);
@@ -557,5 +647,52 @@ void del_board (BOARD_WIDGET* board) {
 	free (board);
 }
 
+/* ------ <option handler> -------- */
 
+void option_handler (BOARD_WIDGET* board) {
+	
+	int ch; 
+	int i = 0;
+	while ((ch = getch ()) != '\n') {
+
+	wdeleteln (board -> headerWnd);
+	wmove (board -> headerWnd, 0, 0);
+	wprintw (board -> headerWnd, "set options [bs]");
+	wrefresh (board -> headerWnd);
+
+		switch (ch) {
+			case 'b' :
+				werase (board -> headerWnd);
+				wbkgd (board -> headerWnd, COLOR_PAIR (i));
+				wprintw (board -> headerWnd, "Base_col [0-7] : %d", i);
+				wrefresh (board -> headerWnd);
+				
+				while ((ch = getch ()) != '\n') {
+					switch (ch) {
+						case KEY_UP :
+							i = (++i < 8) ? i : 7;
+							werase (board -> headerWnd);
+							wbkgd (board -> headerWnd, COLOR_PAIR (i));
+							wprintw (board -> headerWnd, "Base_col [0-7] : %d", i);
+							wrefresh (board -> headerWnd);
+							break;
+
+						case KEY_DOWN :
+							i = (--i > 0) ? i : 0;
+							werase (board -> headerWnd);
+							wbkgd (board -> headerWnd, COLOR_PAIR (i));
+							wprintw (board -> headerWnd, "Base_col [0-7] : %d", i);
+							wrefresh (board -> headerWnd);
+							break;
+					}
+					usleep (1000);
+				}
+				set_colors (board, COLOR_PAIR (i), board -> point_info -> selected_color);
+				break;
+		}
+		usleep (1000);
+	}
+	resize_handler (board);
+}
+/* ------ </option handler> -------- */
 
