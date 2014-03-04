@@ -654,7 +654,7 @@ void del_board (BOARD_WIDGET* board) {
 void option_handler (BOARD_WIDGET* board) {
 	
 	int ch; 
-	int i = 0;
+	int i;
 	while ((ch = getch ()) != '\n') {
 
 	wdeleteln (board -> headerWnd);
@@ -665,6 +665,7 @@ void option_handler (BOARD_WIDGET* board) {
 
 		switch (ch) {
 			case 'b' :
+				i = 0;
 				werase (board -> headerWnd);
 				wbkgd (board -> headerWnd, COLOR_PAIR (i) | A_BOLD);
 				wprintw (board -> headerWnd, "Base_col [0-7] : %d", i);
@@ -676,7 +677,7 @@ void option_handler (BOARD_WIDGET* board) {
 							i = (++i < 8) ? i : 7;
 							werase (board -> headerWnd);
 							wbkgd (board -> headerWnd, COLOR_PAIR (i) | A_BOLD);
-							wprintw (board -> headerWnd, "Base_col [0-7] : %d", i);
+							wprintw (board -> headerWnd, "Base_color [0-7] : %d", i);
 							wrefresh (board -> headerWnd);
 							break;
 
@@ -684,7 +685,7 @@ void option_handler (BOARD_WIDGET* board) {
 							i = (--i > 0) ? i : 0;
 							werase (board -> headerWnd);
 							wbkgd (board -> headerWnd, COLOR_PAIR (i) | A_BOLD);
-							wprintw (board -> headerWnd, "Base_col [0-7] : %d", i);
+							wprintw (board -> headerWnd, "Base_color [0-7] : %d", i);
 							wrefresh (board -> headerWnd);
 							break;
 					}
@@ -692,6 +693,37 @@ void option_handler (BOARD_WIDGET* board) {
 				}
 				set_colors (board, COLOR_PAIR (i), board -> point_info -> selected_color);
 				break;
+
+			case 's' :
+				i = 0;
+				werase (board -> headerWnd);
+				wbkgd (board -> headerWnd, COLOR_PAIR (i) | A_BOLD);
+				wprintw (board -> headerWnd, "selected_color [0-7] : %d", i);
+				wrefresh (board -> headerWnd);
+				
+				while ((ch = getch ()) != '\n') {
+					switch (ch) {
+						case KEY_UP :
+							i = (++i < 8) ? i : 7;
+							werase (board -> headerWnd);
+							wbkgd (board -> headerWnd, COLOR_PAIR (i) | A_BOLD);
+							wprintw (board -> headerWnd, "selected_color [0-7] : %d", i);
+							wrefresh (board -> headerWnd);
+							break;
+
+						case KEY_DOWN :
+							i = (--i > 0) ? i : 0;
+							werase (board -> headerWnd);
+							wbkgd (board -> headerWnd, COLOR_PAIR (i) | A_BOLD);
+							wprintw (board -> headerWnd, "selected_color [0-7] : %d", i);
+							wrefresh (board -> headerWnd);
+							break;
+					}
+					usleep (1000);
+				}
+				set_colors (board, board -> point_info -> base_color, COLOR_PAIR (i));
+				break;
+
 		}
 		usleep (1000);
 	}

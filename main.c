@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <wchar.h>
 #include <locale.h>
+#include <string.h>
+#include <stdlib.h>
 
 #include "boardwidget.h"
 
@@ -11,10 +13,24 @@ typedef struct _MYDATA {
 	int age;
 } MYDATA;
 
+typedef struct _STOCK {
+	char date[50];
+	float open;
+	float high;
+	float low;
+	float close;
+	float volume;
+	float adj_close;
+}STOCK;
+
+void parse_csv (char* file, GPtrArray* data);
+
 static void printHeader (WINDOW* wnd, int colindex) {
 
 	if (colindex == 0) {
-		wprintw (wnd, "%-10s%-10s%-10s", "NO", "NAME", "AGE");
+		wprintw (wnd, "%-14s%-7s%-7s%-7s%-7s%-10s%-7s", "DATE", "OPEN", "HIGH",
+										"LOW", "CLOSE", "VOLUME",
+										"ADJ_CLOSE");
 		wrefresh (wnd);
 	}
 
@@ -22,22 +38,12 @@ static void printHeader (WINDOW* wnd, int colindex) {
 
 static void printData (WINDOW* wnd, gpointer data, int colindex) {
 
-	MYDATA* mydata = (MYDATA*) data;
+	STOCK* mydata = (STOCK*) data;
 
-	switch (colindex){
-		case 0 :
-			wprintw (wnd, "NO.%d", mydata -> no);
-			wrefresh (wnd);
-			break;
-		case 1 :
-			wprintw (wnd, "%s", mydata -> name);
-			wrefresh (wnd);
-			break;
-		case 2 :
-			wprintw (wnd, "%d", mydata -> age);
-			wrefresh (wnd);
-			break;
-	}
+	wprintw (wnd, "%-14s%-7.2f%-7.2f%-7.2f%-7.2f%-10.0f%-7.2f", mydata -> date, mydata -> open,
+										mydata -> high, mydata -> low, mydata -> close, mydata -> volume,
+										mydata -> adj_close);
+
 }
 
 static gint sorting_by_age (gpointer a, gpointer b) {
@@ -79,10 +85,16 @@ void init_scr()
 	color_content (COLOR_GREEN, &r, &g, &b);
 	r=8, g=35, b=77;
 	color_content (COLOR_BLUE, &r, &g, &b);
-	r=249, g=249, b=41;
-	color_content (COLOR_YELLOW, &r, &g, &b);
+/*	r=249, g=249, b=41;
+	color_content (COLOR_YELLOW, &r, &g, &b); */
 	init_pair (1, COLOR_YELLOW, COLOR_GREEN);
 	init_pair (2, COLOR_YELLOW, COLOR_BLUE);
+	init_pair (3, COLOR_YELLOW, COLOR_RED);
+	init_pair (4, COLOR_WHITE, COLOR_GREEN);
+	init_pair (5, COLOR_WHITE, COLOR_RED);
+	init_pair (6, COLOR_WHITE, COLOR_BLUE);
+	init_pair (7, COLOR_WHITE, COLOR_MAGENTA);
+
 	refresh ();
 }
 
@@ -95,13 +107,14 @@ int main(int argc, const char *argv[])
 
 	GPtrArray* datatable = g_ptr_array_new ();
 
-	int length = sizeof (mydata) / sizeof (MYDATA);
+/*	int length = sizeof (mydata) / sizeof (MYDATA);
 
 	int i; 
 	for (i = 0; i < length; i++) {
 		g_ptr_array_add (datatable, &mydata [i]);
 	}
-	
+*/	
+	parse_csv ("/home/erich0929/문서/table.csv", datatable);
 	POINT_INFO point_info;
 	point_info.origin_x = 1;
 	point_info.origin_y = 1;
@@ -110,7 +123,7 @@ int main(int argc, const char *argv[])
 	point_info.x_from_origin = 0;
 	point_info.y_from_origin = 0;
 
-	BOARD_WIDGET* board = new_board (board, 5, 3, 1, 10, &point_info, datatable, printHeader, printData);
+	BOARD_WIDGET* board = new_board (board, 10, 1, 1, 62, &point_info, datatable, printHeader, printData);
 	/*	refresh (); */
 	
 	set_rowIndex (board, 0);
@@ -141,4 +154,33 @@ int main(int argc, const char *argv[])
 	del_board (board);
 	endwin ();
 	return 0;
+}
+
+void parse_csv (char* filename, GPtrArray* data) {
+
+	char buffer [200];
+	char* token;
+	STOCK recordset[70000]; 
+
+	FILE* file = fopen (filename, "r");
+	float f;
+	int i=0;
+
+	while (fgets (buffer, 200, file)) {
+
+		token = strtok (buffer, ",");
+
+		strcpy (recordset [i].date, token);
+		recordset [i].open = atof (strtok (NULL, ","));
+		recordset [i].high = atof (strtok (NULL, ","));
+		recordset [i].low = atof (strtok (NULL, ","));
+		recordset [i].close = atof (strtok (NULL, ","));
+		recordset [i].volume = atof (strtok (NULL, ","));
+		recordset [i].adj_close = atof (strtok (NULL, ","));
+
+		g_ptr_array_add (data, &recordset [i]);
+		i++;
+
+	} 
+	fclose (file);
 }
