@@ -253,9 +253,9 @@ void clear_board (BOARD_WIDGET* board) {
 		for (i = 0; i < board -> wndTable -> len; i++) { /* debug : i < row */
 			rowContainer = (WINDOW**) g_ptr_array_index (board -> wndTable, i);
 			for (j = 0; j < board -> col; j++) {
-				wdeleteln (rowContainer [j]); /* clear data */
-				wmove (rowContainer [j], 0 , 0);
-				wrefresh (rowContainer [j]); 
+				werase (rowContainer [j]); /* clear data */
+				/* wmove (rowContainer [j], 0 , 0); */
+				/* wrefresh (rowContainer [j]); */
 			}
 		}
 	}
