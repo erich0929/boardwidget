@@ -62,9 +62,6 @@ BOARD_WIDGET* new_board (BOARD_WIDGET* board, int row, int col,
 	board -> row_width = row_width;
 	board -> col_width = col_width;
 	
-	board -> firstrow_index = 0;
-	board -> lastrow_index = 0;
-
 	board -> base_color = point_info -> base_color;  
 	board -> selected_color = point_info -> selected_color;
 	board -> selected_index = 0;
@@ -164,6 +161,13 @@ BOARD_WIDGET* new_board (BOARD_WIDGET* board, int row, int col,
 		}
 		g_ptr_array_add (board -> wndTable, rowContainer);
 	}
+
+	board -> firstrow_index = 0;
+	board -> lastrow_index = (board -> wndTable -> len < board -> dataTable -> len) ?
+								((int) board -> wndTable -> len - 1) :
+								((int) board -> dataTable -> len - 1);
+
+
 	return board;
 }
 
@@ -180,6 +184,8 @@ void set_selected_color (BOARD_WIDGET* board, chtype color) {
 }
 
 void set_rowIndex (BOARD_WIDGET* board, int index) {
+
+	int remember_num = board -> lastrow_index - board -> firstrow_index;
 
 	/* ------------- <SET selected_index> ----------------- */
 	guint length = board -> wndTable -> len;
@@ -214,15 +220,15 @@ void set_rowIndex (BOARD_WIDGET* board, int index) {
 	/*	board -> firstrow_index = (board -> dataTable -> len < board -> wndTable -> len) ?
 			board -> lastrow_index - (board -> dataTable -> len - 1) :
 			board -> lastrow_index - (board -> wndTable -> len - 1);	*/
-
-		board -> firstrow_index = board -> lastrow_index - ((int) length - 1);
+		int temp = (remember_num < ((int) length - 1)) ? remember_num : ((int) length - 1);
+		board -> firstrow_index = board -> lastrow_index - remember_num;
 		board -> firstrow_index = (board -> firstrow_index > 0) ?
 									board -> firstrow_index : 0;
 
 	}
 
 	/* ------------- </SET firstrow_index and lastrow_index> -------------- */
-
+	
 	if (board -> selected_index > (board -> lastrow_index - board -> firstrow_index)) {
 				board -> selected_index =
 					(board -> lastrow_index - board -> firstrow_index);
@@ -443,6 +449,7 @@ void resize_handler (BOARD_WIDGET* board) {
 	origin_point_info.y_from_origin = board -> origin_point_info -> y_from_origin;
 
 	del_board (board); /* delete board */
+
 	board = new_board (board, row, col, row_width, col_width, &origin_point_info
 						,dataTable, printHeader, printData); 
 
@@ -473,6 +480,9 @@ void resize_handler (BOARD_WIDGET* board) {
 
 	set_selected_color (board, selected_color);
 	set_base_color (board, base_color);
+	bkgd (COLOR_PAIR (0));
+	wrefresh (stdscr);
+
 	update_board (board);
 
 	refresh ();
@@ -580,6 +590,7 @@ void set_colors (BOARD_WIDGET* board, chtype base_color, chtype selected_color) 
 	set_selected_color (board, selected_color);
 	set_base_color (board, base_color);
 	update_board (board);
+
 
 	refresh ();
 }

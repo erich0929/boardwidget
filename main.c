@@ -123,10 +123,10 @@ int main(int argc, const char *argv[])
 	point_info.x_from_origin = 0;
 	point_info.y_from_origin = 0;
 
-	BOARD_WIDGET* board = new_board (board, 10, 1, 1, 62, &point_info, datatable, printHeader, printData);
+	BOARD_WIDGET* board = new_board (board, 5, 1, 1, 62, &point_info, datatable, printHeader, printData);
 	/*	refresh (); */
 	
-	set_rowIndex (board, 0);
+	set_rowIndex (board, datatable -> len - 1);
 	update_board (board);
 	inactivate_board (board);
 
@@ -160,7 +160,7 @@ void parse_csv (char* filename, GPtrArray* data) {
 
 	char buffer [200];
 	char* token;
-	STOCK recordset[70000]; 
+	STOCK recordset[10000]; 
 
 	FILE* file = fopen (filename, "r");
 	float f;
