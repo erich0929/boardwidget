@@ -114,7 +114,7 @@ int main(int argc, const char *argv[])
 		g_ptr_array_add (datatable, &mydata [i]);
 	}
 */	
-	parse_csv ("/home/erich0929/문서/table.csv", datatable);
+	parse_csv ("/home/erich0929/yahoo.csv", datatable);
 	POINT_INFO point_info;
 	point_info.origin_x = 1;
 	point_info.origin_y = 1;
@@ -123,10 +123,10 @@ int main(int argc, const char *argv[])
 	point_info.x_from_origin = 0;
 	point_info.y_from_origin = 0;
 
-	BOARD_WIDGET* board = new_board (board, 5, 1, 1, 62, &point_info, datatable, printHeader, printData);
+	BOARD_WIDGET* board = new_board (board, 20, 1, 1, 62, &point_info, datatable, printHeader, printData);
 	/*	refresh (); */
 	
-	set_rowIndex (board, datatable -> len - 1);
+	set_rowIndex (board, 0);
 	update_board (board);
 	inactivate_board (board);
 
@@ -137,7 +137,29 @@ int main(int argc, const char *argv[])
 				board_eventhandler (board);
 				
 				break;
+			case 'x' :
+				activate_board (board);
+				int t = 0;
+				while ((ch = getch ()) != 'q') {
 
+					clear_board (board);
+					set_rowIndex (board, t);
+					inactivate_board (board);
+					board -> selected_color = COLOR_PAIR (t%7);
+					update_board (board);
+					t ++;
+					if (t > (int) board -> dataTable -> len) {
+						t = 0;
+						clear_board (board);
+						set_rowIndex (board, - 10000000);
+						inactivate_board (board);
+						board -> selected_color = COLOR_PAIR (t%7);
+						update_board (board);
+					}
+					usleep (50000);
+				}
+				inactivate_board (board);
+				break;
 			case 's' :
 				g_ptr_array_sort (board -> dataTable, (GCompareFunc) sorting_by_age);
 				clear_board (board);
