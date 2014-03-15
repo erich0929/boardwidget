@@ -68,6 +68,7 @@ void board_eventhandler (BOARD_WIDGET* board);
 void del_board (BOARD_WIDGET* board);
 
 void option_handler (BOARD_WIDGET* board);
+void init_scr ();
 #endif /* end of include guard: BOARDWIDGET_H */
 
 

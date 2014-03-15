@@ -42,6 +42,32 @@ typedef struct _BOARD_WIDGET {
 } BOARD_WIDGET;
 
 */
+void init_scr()
+{
+	initscr();
+	start_color(); 
+	curs_set(0);
+	noecho();
+	nodelay (stdscr, TRUE); 
+	keypad(stdscr, TRUE);
+	use_default_colors (); 
+	short r, g, b;
+	r=81, g=243, b=22;
+	color_content (COLOR_GREEN, &r, &g, &b);
+	r=8, g=35, b=77;
+	color_content (COLOR_BLUE, &r, &g, &b);
+/*	r=249, g=249, b=41;
+	color_content (COLOR_YELLOW, &r, &g, &b); */
+	init_pair (1, COLOR_YELLOW, COLOR_GREEN);
+	init_pair (2, COLOR_YELLOW, COLOR_BLUE);
+	init_pair (3, COLOR_YELLOW, COLOR_RED);
+	init_pair (4, COLOR_WHITE, COLOR_GREEN);
+	init_pair (5, COLOR_WHITE, COLOR_RED);
+	init_pair (6, COLOR_WHITE, COLOR_BLUE);
+	init_pair (7, COLOR_WHITE, COLOR_MAGENTA);
+
+	refresh ();
+}
 
 BOARD_WIDGET* new_board (BOARD_WIDGET* board, int row, int col,
 		int row_width, int col_width, POINT_INFO* point_info,
