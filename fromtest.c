@@ -14,7 +14,7 @@ typedef struct _STOCK {
 
 static void printHeader_date (WINDOW* wnd, int colindex) {
 	wprintw (wnd, "Select Month");
-	wrefresh (wnd);
+
 }
 
 static void printData_date (WINDOW* wnd, gpointer data, int colindex) {
@@ -29,8 +29,6 @@ int main(void)
 	BOARD_WIDGET* dateInput;
 
 	init_scr ();
-	cbreak ();
-	refresh ();
 
 	int i;
 	for (i = 1; i < 13; i++) {

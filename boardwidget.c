@@ -167,7 +167,8 @@ BOARD_WIDGET* new_board (BOARD_WIDGET* board, int row, int col,
 	board -> wndTable = g_ptr_array_new ();
 
 	/* Create new header window */
-	board -> headerWnd = subwin (board -> mainWnd, 1, board -> col_width * board -> col + add_col_width, 2, 2);
+	board -> headerWnd = subwin (board -> mainWnd, 1, board -> col_width * board -> col + add_col_width, 
+								board -> point_info -> origin_y + 1, board -> point_info -> origin_x + 1);
 	for (j = 0; j < board -> col; j++) {
 		wbkgd (board -> headerWnd, board -> base_color | A_BOLD);
 		board -> printHeader (board -> headerWnd, j);
@@ -182,8 +183,8 @@ BOARD_WIDGET* new_board (BOARD_WIDGET* board, int row, int col,
 		for (j = 0; j < board -> col; j++) {
 			rowContainer [j] = subwin (board -> mainWnd, board -> row_width, 
 										board -> col_width + add_col_width,
-										i * board -> row_width + 3, 
-										j * board -> col_width + 2);
+										i * board -> row_width + board -> point_info -> origin_y + 2, 
+										j * board -> col_width + board -> point_info -> origin_x + 1);
 		}
 		g_ptr_array_add (board -> wndTable, rowContainer);
 	}

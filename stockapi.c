@@ -1,40 +1,4 @@
-#ifndef STOCKAPI_H
-
-#define STOCKAPI_H
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <curl/curl.h>
-#include <glib.h>
-#include <string.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-
-typedef struct _STOCK {
-	char date[50];
-	float open;
-	float high;
-	float low;
-	float close;
-	float volume;
-	float adj_close;
-}STOCK;
-
-long get_stock_from_yahoo (char* code, 
-		char* from_mm, char* from_dd, char* from_yy, 
-		char* to_mm, char* to_dd, char* to_yy, GPtrArray* data);
-
-static size_t WriteMemoryCallback (void* ptr, size_t size, size_t nmemb, void* data);
-
-int str_to_array (char* line, GPtrArray* data);
-
-typedef struct _BufferStruct
-{
-	char * buffer;
-	size_t size;
-} BufferStruct;
-
+#include "stockapi.h"
 
 static size_t WriteMemoryCallback
 (void *ptr, size_t size, size_t nmemb, void *data)
@@ -195,17 +159,4 @@ long get_stock_from_yahoo (char* code,
 		return statLong;
 	/*	close (output);	*/
 }
-/*
-int main(int argc, const char *argv[])
-{
-	GPtrArray* data = g_ptr_array_new ();
-
-	long temp = get_stock_from_yahoo ("068400.KS", "01", "01", "2010", "01", "10", "2014", data);
- http://ichart.finance.yahoo.com/table.csv?s=068400.KS&a=07&b=1&c=2011&d=07&e=10&f=2011&g=d&ignore=.csv 
-	return 0;
-}
-*/
-
-#endif /* end of include guard: STOCKAPI_H */
-
 
